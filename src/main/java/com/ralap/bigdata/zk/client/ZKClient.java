@@ -39,12 +39,12 @@ public class ZKClient {
 
     public static void getServerList(String name)
             throws IOException, KeeperException, InterruptedException {
-
         getConnect(name);
         List<String> childrenList = zk.getChildren("/server", true);
         List<String> serverPahtList = new ArrayList<>();
         for (String children : childrenList) {
-            serverPahtList.add(new String(zk.getData("/server/" + children, false, new Stat()),"utf-8"));
+            serverPahtList
+                    .add(new String(zk.getData("/server/" + children, false, new Stat()), "utf-8"));
         }
         System.out.println(serverPahtList);
         Thread.sleep(Long.MAX_VALUE);
