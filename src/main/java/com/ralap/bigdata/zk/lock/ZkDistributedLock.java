@@ -26,7 +26,8 @@ public class ZkDistributedLock {
     // 超时时间
     private static final int SESSION_TIMEOUT = 5000;
     // zookeeper server列表
-    private String hosts = "**.**.**.**:2181";
+//    private String hosts = "**.**.**.**:2181";
+    private String hosts = "47.93.196193:2181";
     private String groupNode = "locks";
     private String subNode = "sub";
 
