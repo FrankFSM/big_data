@@ -4,8 +4,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 /**
  * @author: ralap
@@ -65,7 +63,7 @@ public class LockDemo {
 
     public void rWLock() {
 
-       new Thread(() -> {
+        new Thread(() -> {
             read(Thread.currentThread());
             write(Thread.currentThread());
         }).start();
@@ -76,7 +74,7 @@ public class LockDemo {
         rwLock.readLock().lock();
         try {
             long millis = System.currentTimeMillis();
-            while (System.currentTimeMillis() - millis <=1){
+            while (System.currentTimeMillis() - millis <= 1) {
                 System.out.println(thread.getName() + "reading");
             }
             System.out.println(thread.getName() + "read finish");
@@ -90,7 +88,7 @@ public class LockDemo {
         rwLock.writeLock().lock();
         try {
             long millis = System.currentTimeMillis();
-            while (System.currentTimeMillis() - millis <=1){
+            while (System.currentTimeMillis() - millis <= 1) {
                 System.out.println(thread.getName() + "writeing");
             }
             System.out.println(thread.getName() + "write finish");
