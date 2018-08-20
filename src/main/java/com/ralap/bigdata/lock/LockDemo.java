@@ -80,6 +80,7 @@ public class LockDemo {
             System.out.println(thread.getName() + "read finish");
 
         } finally {
+
             rwLock.readLock().unlock();
         }
     }
