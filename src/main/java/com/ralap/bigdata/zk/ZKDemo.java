@@ -39,9 +39,9 @@ public class ZKDemo {
         getConnect();
 //        zk.create("/server", "server".getBytes(), Ids.OPEN_ACL_UNSAFE,
 //                CreateMode.PERSISTENT);
-        String data = new String(zk.getData("/server", false, new Stat()));
-        System.out.println("创建成功");
-        System.out.println(data);
+        Stat exists = zk.exists("/server", false);
+        System.out.println("------------>");
+        System.out.println(exists);
         after();
     }
 

@@ -1,5 +1,8 @@
 package com.ralap.bigdata.zk.lock;
 
+import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.Stat;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,31 +11,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooDefs;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.Stat;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
-
 
 /**
- * ZkDistributedLock
- *
- * @author: ralap
- * @date: created at 2018/8/23 16:15
+ * MyZkDistributedLock
+ * @author: ralap 
+ * @date: created at 2018/8/23 17:34
  */
-
-@Slf4j
-@Component
-@PropertySource("classpath:application.properties")
-public class ZkDistributedLock implements Lock, Watcher {
+public class MyZkDistributedLock implements Lock, Watcher {
 
     private ZooKeeper zk = null;
     // 根节点
@@ -45,23 +30,16 @@ public class ZkDistributedLock implements Lock, Watcher {
     private String CURRENT_LOCK;
     // 计数器
     private CountDownLatch countDownLatch;
-    //超时时间
     private int sessionTimeout = 30000;
-    //异常集合
     private List<Exception> exceptionList = new ArrayList<Exception>();
-
-    @Value("zk.hosts")
-    String config;
-
-    public ZkDistributedLock() {
-    }
 
     /**
      * 配置分布式锁
      *
+     * @param config 连接的url
      * @param lockName 竞争资源
      */
-    public ZkDistributedLock(String lockName) {
+    public MyZkDistributedLock(String config, String lockName) {
         this.lockName = lockName;
         try {
             // 连接zookeeper
@@ -73,14 +51,11 @@ public class ZkDistributedLock implements Lock, Watcher {
                         CreateMode.PERSISTENT);
             }
         } catch (IOException e) {
-            log.error("Zk连接异常", e);
-            exceptionList.add(e);
+            e.printStackTrace();
         } catch (InterruptedException e) {
-            log.error("Zk连接异常", e);
-            exceptionList.add(e);
+            e.printStackTrace();
         } catch (KeeperException e) {
-            log.error("Zk连接异常", e);
-            exceptionList.add(e);
+            e.printStackTrace();
         }
     }
 
@@ -99,7 +74,7 @@ public class ZkDistributedLock implements Lock, Watcher {
         }
         try {
             if (this.tryLock()) {
-                log.info("------------>线程：{},锁：{}，获得", Thread.currentThread().getName(), lockName);
+                System.out.println(Thread.currentThread().getName() + " " + lockName + "获得了锁");
                 return;
             } else {
                 // 等待锁
@@ -122,7 +97,7 @@ public class ZkDistributedLock implements Lock, Watcher {
             // 创建临时有序节点
             CURRENT_LOCK = zk.create(ROOT_LOCK + "/" + lockName + splitStr, new byte[0],
                     ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
-            log.info("{},已创建", CURRENT_LOCK);
+            System.out.println(CURRENT_LOCK + " 已经创建");
             // 取所有子节点
             List<String> subNodes = zk.getChildren(ROOT_LOCK, false);
             // 取出所有lockName的锁
@@ -134,7 +109,7 @@ public class ZkDistributedLock implements Lock, Watcher {
                 }
             }
             Collections.sort(lockObjects);
-            log.info("线程：{}，的锁是：{}", Thread.currentThread().getName(), CURRENT_LOCK);
+            System.out.println(Thread.currentThread().getName() + " 的锁是 " + CURRENT_LOCK);
             // 若当前节点为最小节点，则获取锁成功
             if (CURRENT_LOCK.equals(ROOT_LOCK + "/" + lockObjects.get(0))) {
                 return true;
@@ -170,12 +145,12 @@ public class ZkDistributedLock implements Lock, Watcher {
         Stat stat = zk.exists(ROOT_LOCK + "/" + prev, true);
 
         if (stat != null) {
-            log.info("线程：{}，等待锁：{}", Thread.currentThread().getName(), ROOT_LOCK + "/" + prev);
+            System.out.println(Thread.currentThread().getName() + "等待锁 " + ROOT_LOCK + "/" + prev);
             this.countDownLatch = new CountDownLatch(1);
             // 计数等待，若等到前一个节点消失，则precess中进行countDown，停止等待，获取锁
             this.countDownLatch.await(waitTime, TimeUnit.MILLISECONDS);
             this.countDownLatch = null;
-            log.info("线程：{}，等到了锁", Thread.currentThread().getName());
+            System.out.println(Thread.currentThread().getName() + " 等到了锁");
         }
         return true;
     }
@@ -183,7 +158,7 @@ public class ZkDistributedLock implements Lock, Watcher {
     @Override
     public void unlock() {
         try {
-            log.info("释放锁 {}", CURRENT_LOCK);
+            System.out.println("释放锁 " + CURRENT_LOCK);
             zk.delete(CURRENT_LOCK, -1);
             CURRENT_LOCK = null;
             zk.close();
