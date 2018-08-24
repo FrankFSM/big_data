@@ -18,6 +18,7 @@ import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
@@ -30,8 +31,7 @@ import org.springframework.stereotype.Component;
  */
 
 @Slf4j
-@Component
-@PropertySource("classpath:application.properties")
+@Configuration
 public class ZkDistributedLock implements Lock, Watcher {
 
     private ZooKeeper zk = null;
@@ -50,22 +50,22 @@ public class ZkDistributedLock implements Lock, Watcher {
     //异常集合
     private List<Exception> exceptionList = new ArrayList<Exception>();
 
-    @Value("zk.hosts")
-    String config;
+    @Value("${zk.hosts}")
+    String hosts;
 
-    public ZkDistributedLock() {
+
+    public void setLockName(String lockName) {
+        this.lockName = lockName;
     }
 
     /**
      * 配置分布式锁
-     *
-     * @param lockName 竞争资源
      */
-    public ZkDistributedLock(String lockName) {
+    public ZkDistributedLock() {
         this.lockName = lockName;
         try {
             // 连接zookeeper
-            zk = new ZooKeeper(config, sessionTimeout, this);
+            zk = new ZooKeeper(hosts, sessionTimeout, this);
             Stat stat = zk.exists(ROOT_LOCK, false);
             if (stat == null) {
                 // 如果根节点不存在，则创建根节点

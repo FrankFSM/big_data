@@ -19,7 +19,6 @@ public class Test {
             public void run() {
                 ZkDistributedLock lock = null;
                 try {
-                    lock = new ZkDistributedLock("test1");
                     lock.lock();
                     secskill();
                     System.out.println(Thread.currentThread().getName() + "正在运行");

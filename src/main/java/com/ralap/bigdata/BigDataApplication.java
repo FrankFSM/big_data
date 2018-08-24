@@ -1,6 +1,7 @@
 package com.ralap.bigdata;
 
 import com.ralap.bigdata.zk.lock.ZkDistributedLock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Controller;
@@ -18,14 +19,16 @@ public class BigDataApplication {
 
     int n = 200;
 
+    @Autowired
+    private ZkDistributedLock lock;
+
     @GetMapping("/zk")
     public void zk() {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                ZkDistributedLock lock = null;
                 try {
-                    lock = new ZkDistributedLock("test1");
+                    lock.setLockName("test1");
                     lock.lock();
                     System.out.println("------------>" + --n);
                     System.out.println(Thread.currentThread().getName() + "正在运行");
