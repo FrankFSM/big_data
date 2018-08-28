@@ -8,7 +8,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -19,12 +18,19 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
 
 
 /**
  * ZkDistributedLock
+ * 基于Zookeeper、Lock实现的分布共享式锁
+ *
+ * 1. 构造初始化Zookeeper连接
+ * 2. 在lock中尝试获取锁（tryLock）
+ * 1). 首先创建当前连接的节点
+ * 2). 获取所有相关节点，并排序
+ * 3). 若当前为最小值，直接返回获取成功
+ * 4). 否则获取前一个节点，让当前节点进入等待状态
+ * 3. 监听前一个节点，
  *
  * @author: ralap
  * @date: created at 2018/8/23 16:15
@@ -51,7 +57,7 @@ public class ZkDistributedLock implements Lock, Watcher {
     private List<Exception> exceptionList = new ArrayList<Exception>();
 
     @Value("${zk.hosts}")
-    String hosts;
+    String hosts = "**.**.**.**";
 
 
     public void setLockName(String lockName) {
